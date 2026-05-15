@@ -324,3 +324,45 @@ Essa separação ajuda a manter o código mais organizado, principalmente porque
 ### Revisão crítica
 
 O padrão **Observer** poderia se tornar um problema se o sistema crescesse e muitos observadores fossem adicionados sem controle, como notificações por e-mail, mensagens internas, atualização de interface e histórico de eventos. Nesse caso, uma simples inscrição poderia disparar várias ações difíceis de rastrear, dificultando a manutenção e o entendimento do fluxo por novos membros da equipe. Para evitar isso em um projeto maior, seria necessário documentar bem os observadores e talvez usar uma estrutura mais robusta de eventos.
+
+## Tarefa 2.3 - Testes
+
+### Estratégia de teste adotada
+
+A estratégia adotada foi criar testes automatizados com `unittest` para validar as principais regras de negócio do protótipo, especialmente as funcionalidades relacionadas às histórias de usuário de prioridade alta: criação de atividades e inscrição em atividades. Os testes foram concentrados nas camadas de fábrica e serviço, pois nelas estão as regras mais importantes do sistema, como validação de campos obrigatórios, limite de participantes, busca de atividades e controle de inscrição.
+
+Foram testados dois conjuntos principais:
+
+1. `AtividadeFactory.criar_atividade()`
+2. `ServicoAtividades.inscrever_usuario()`
+
+Essa estratégia é adequada porque o sistema foi organizado em arquitetura em camadas. Assim, é possível testar a lógica principal sem depender diretamente da interface em terminal presente no `app.py`.
+
+### Testes da função `AtividadeFactory.criar_atividade()`
+
+Foram criados testes para verificar:
+
+* cenário de sucesso: criação de uma atividade válida;
+* cenário de falha/exceção: tentativa de criar atividade com limite de participantes inválido;
+* cenário de borda: criação de atividade com o limite mínimo permitido de participantes.
+
+Esses testes validam o padrão Factory Method aplicado ao projeto, garantindo que as atividades sejam criadas de forma controlada e respeitando as regras definidas.
+
+### Testes do método `ServicoAtividades.inscrever_usuario()`
+
+Foram criados testes para verificar:
+
+* cenário de sucesso: inscrição de um usuário em uma atividade existente;
+* cenário de falha/exceção: tentativa de inscrição em uma atividade inexistente;
+* cenário de borda: inscrição até atingir exatamente o limite máximo de participantes;
+* cenário adicional de falha: tentativa de inscrição duplicada do mesmo usuário.
+
+Esses testes validam uma regra central do sistema: permitir participação em grupos pequenos sem ultrapassar o limite definido na criação da atividade.
+
+### Aspectos não cobertos pelos testes
+
+Os testes não cobrem diretamente a interface em terminal implementada em `app.py`, pois ela depende de entradas manuais do usuário por meio de `input()`. Também não foram testadas notificações impressas no console pelo `NotificadorConsole`, pois no protótipo elas funcionam apenas como uma saída visual simples. O foco dos testes foi validar as regras de negócio, que são mais críticas para o funcionamento correto do sistema.
+
+### Revisão crítica
+
+Uma parte do código que seria mais difícil de testar é o arquivo `app.py`, porque ele depende de interação direta com o usuário por meio do terminal. Em um projeto maior, essa dificuldade se tornaria mais relevante porque fluxos com muitos menus, entradas inválidas e respostas diferentes exigiriam simulações mais complexas ou testes de interface. Para reduzir esse problema, seria importante manter o máximo possível de lógica fora do `app.py`, deixando esse arquivo apenas como camada de entrada e saída.
