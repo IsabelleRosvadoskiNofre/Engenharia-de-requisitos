@@ -95,3 +95,232 @@ Por outro lado, essa separação torna o sistema mais fácil de entender, testar
 
 Essa arquitetura além de facilitar na organização e visualização do projeto, também permite uma atualização/expansão mais fácil.
 Tendo os componentes menos acoplados facilitamos a manutenção isolada de uma função.
+
+## Tarefa 2.2 - Implementação com Padrões de Projeto
+
+### Histórias de usuário atendidas pelo protótipo
+
+O protótipo funcional em Python atenderá pelo menos duas histórias de usuário de prioridade alta definidas na Parte 1:
+
+1. **Criar uma atividade**
+   Como pessoa neurodivergente, quero criar uma atividade, como caminhada no parque, estudo em biblioteca ou ida a um evento, para encontrar companhia em uma situação com objetivo definido.
+
+2. **Inscrever-se em uma atividade**
+   Como pessoa neurodivergente, quero me inscrever em uma atividade com vagas disponíveis para participar de um encontro em pequeno grupo sem precisar iniciar uma interação social do zero.
+
+Essas histórias foram escolhidas porque representam o fluxo principal do sistema: primeiro uma atividade é criada, depois outros usuários podem se inscrever nela respeitando o limite de participantes.
+
+---
+
+### Padrão 1: Factory Method
+
+**Nome do padrão:** Factory Method
+**Categoria:** Criacional
+
+#### Justificativa do uso
+
+O padrão **Factory Method** foi aplicado na criação de atividades. Em vez de espalhar a lógica de criação de objetos diretamente pelo sistema, a criação das atividades fica concentrada em uma fábrica.
+
+Isso é útil porque toda atividade precisa seguir algumas regras antes de existir no sistema, como ter título, local, data, horário, nível de interação e limite máximo de participantes. Além disso, o sistema pode crescer futuramente para ter diferentes tipos de atividade, como atividade presencial, atividade online, atividade individual ou atividade em grupo.
+
+Com esse padrão, a criação de atividades fica mais organizada e fácil de alterar.
+
+#### Diagrama aplicado ao projeto
+
+```text
+app.py
+  |
+  | solicita dados da atividade
+  v
+AtividadeFactory
+  |
+  | cria objeto Atividade
+  v
+Atividade
+```
+
+#### Classes e módulos envolvidos
+
+```text
+codigo/
+│
+├── app.py
+├── modelos.py
+├── fabrica.py
+└── servicos.py
+```
+
+#### Representação do padrão no projeto
+
+```text
++-------------------+
+|      app.py       |
++-------------------+
+          |
+          v
++------------------------+
+|   AtividadeFactory     |
+|------------------------|
+| criar_atividade(...)   |
++------------------------+
+          |
+          v
++------------------------+
+|       Atividade        |
+|------------------------|
+| id                     |
+| titulo                 |
+| descricao              |
+| local                  |
+| data                   |
+| horario                |
+| limite_participantes   |
+| nivel_interacao        |
+| participantes          |
++------------------------+
+```
+
+#### Onde foi aplicado no código
+
+O padrão será aplicado no arquivo:
+
+```text
+codigo/fabrica.py
+```
+
+Função/classe relevante:
+
+```text
+AtividadeFactory.criar_atividade()
+```
+
+Essa função será responsável por criar objetos do tipo `Atividade` com os dados necessários para o sistema.
+
+Exemplo conceitual:
+
+```python
+atividade = AtividadeFactory.criar_atividade(
+    titulo="Caminhada no parque",
+    descricao="Caminhada leve no fim da tarde",
+    local="Parque Jaboti",
+    data="20/05/2026",
+    horario="16:00",
+    limite_participantes=4,
+    nivel_interacao="pouca conversa"
+)
+```
+
+---
+
+### Padrão 2: Observer
+
+**Nome do padrão:** Observer
+**Categoria:** Comportamental
+
+#### Justificativa do uso
+
+O padrão **Observer** foi aplicado para representar notificações após uma inscrição em atividade.
+
+Quando um usuário se inscreve em uma atividade, pode ser necessário avisar outras partes do sistema. Por exemplo, em uma versão futura, o sistema poderia notificar o criador da atividade, atualizar uma interface gráfica, enviar uma mensagem ou registrar um histórico.
+
+No protótipo, esse comportamento será simplificado: quando uma inscrição for realizada com sucesso, um observador será notificado e exibirá uma mensagem no terminal. Mesmo simples, isso demonstra a separação entre a regra principal de inscrição e as ações que acontecem depois dela.
+
+#### Diagrama aplicado ao projeto
+
+```text
+Usuario se inscreve
+        |
+        v
+ServicoAtividades.inscrever_usuario()
+        |
+        v
+Atividade notifica observadores
+        |
+        v
+NotificadorConsole
+```
+
+#### Classes e módulos envolvidos
+
+```text
+codigo/
+│
+├── modelos.py
+├── servicos.py
+└── notificadores.py
+```
+
+#### Representação do padrão no projeto
+
+```text
++--------------------------+
+|   ServicoAtividades      |
+|--------------------------|
+| inscrever_usuario(...)   |
++--------------------------+
+             |
+             v
++--------------------------+
+|        Atividade         |
+|--------------------------|
+| adicionar_observador()   |
+| notificar_observadores() |
++--------------------------+
+             |
+             v
++--------------------------+
+|    NotificadorConsole    |
+|--------------------------|
+| atualizar(...)           |
++--------------------------+
+```
+
+#### Onde foi aplicado no código
+
+O padrão será aplicado principalmente nos arquivos:
+
+```text
+codigo/modelos.py
+codigo/notificadores.py
+codigo/servicos.py
+```
+
+Trechos relevantes:
+
+```text
+Atividade.adicionar_observador()
+Atividade.notificar_observadores()
+NotificadorConsole.atualizar()
+ServicoAtividades.inscrever_usuario()
+```
+
+No fluxo do sistema, quando a inscrição for aceita, a atividade notificará seus observadores.
+
+Exemplo conceitual:
+
+```python
+atividade.adicionar_observador(NotificadorConsole())
+servico.inscrever_usuario(atividade_id=1, usuario_id=2)
+```
+
+Após a inscrição, o observador poderá exibir uma mensagem como:
+
+```text
+Usuário inscrito com sucesso na atividade Caminhada no parque.
+```
+
+---
+
+### Relação dos padrões com as histórias de usuário
+
+O **Factory Method** está diretamente relacionado à história **Criar uma atividade**, pois organiza a criação dos objetos de atividade e centraliza as regras iniciais de construção.
+
+O **Observer** está diretamente relacionado à história **Inscrever-se em uma atividade**, pois permite que o sistema reaja a uma inscrição bem-sucedida sem misturar a lógica de inscrição com a lógica de notificação.
+
+Essa separação ajuda a manter o código mais organizado, principalmente porque o sistema trabalha com ações sensíveis para o usuário, como participação em pequenos grupos, limite de vagas e confirmação de inscrição.
+
+---
+
+### Revisão crítica
+
+O padrão **Observer** poderia se tornar um problema se o sistema crescesse e muitos observadores fossem adicionados sem controle, como notificações por e-mail, mensagens internas, atualização de interface e histórico de eventos. Nesse caso, uma simples inscrição poderia disparar várias ações difíceis de rastrear, dificultando a manutenção e o entendimento do fluxo por novos membros da equipe. Para evitar isso em um projeto maior, seria necessário documentar bem os observadores e talvez usar uma estrutura mais robusta de eventos.
